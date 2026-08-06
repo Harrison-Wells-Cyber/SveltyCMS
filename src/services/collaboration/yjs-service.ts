@@ -10,7 +10,7 @@ import { pubSub } from "@src/services/background/pub-sub";
 
 class YjsService {
   private static instance: YjsService;
-  // Map of DocumentID -> Y.Doc
+  // Map of tenant-scoped DocumentID -> Y.Doc
   private docs: Map<string, Y.Doc> = new Map();
 
   private constructor() {
@@ -33,7 +33,8 @@ class YjsService {
    * Gets or creates a Y.Doc for a specific entry/field
    */
   private getDoc(docId: string, tenantId: string): Y.Doc {
-    if (!this.docs.has(docId)) {
+    const key = `${tenantId}:${docId}`;
+    if (!this.docs.has(key)) {
       const doc = new Y.Doc();
 
       // Handle persistence if needed (e.g. periodically save to DB)
@@ -50,9 +51,9 @@ class YjsService {
         });
       });
 
-      this.docs.set(docId, doc);
+      this.docs.set(key, doc);
     }
-    return this.docs.get(docId)!;
+    return this.docs.get(key)!;
   }
 
   /**

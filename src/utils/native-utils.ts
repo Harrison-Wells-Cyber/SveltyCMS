@@ -13,14 +13,23 @@
  * Generates a RFC 4122 compliant v4 UUID using native CSPRNG.
  */
 export function generateUUID(): string {
-  // Use crypto.randomUUID (Node.js 14.17+, Bun, Deno, Modern Browsers)
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
+  const webCrypto = globalThis.crypto;
+  if (!webCrypto) {
+    throw new Error("Secure random number generation is unavailable");
   }
 
-  // Fallback for older secure contexts
+  // randomUUID is restricted to secure browser contexts. HTTP setup pages can
+  // still use the universally available CSPRNG primitive below.
+  if (typeof webCrypto.randomUUID === "function") {
+    return webCrypto.randomUUID();
+  }
+
+  if (typeof webCrypto.getRandomValues !== "function") {
+    throw new Error("Secure random number generation is unavailable");
+  }
+
   const bytes = new Uint8Array(16);
-  crypto.getRandomValues(bytes);
+  webCrypto.getRandomValues(bytes);
   bytes[6] = (bytes[6] & 0x0f) | 0x40;
   bytes[8] = (bytes[8] & 0x3f) | 0x80;
 

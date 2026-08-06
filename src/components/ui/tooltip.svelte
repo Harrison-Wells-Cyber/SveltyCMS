@@ -28,6 +28,7 @@ reveal after position calculation prevents layout flash.
 	import type { Snippet } from "svelte";
 	import Portal from "./portal.svelte";
 	import { useFloating, type Placement } from "@utils/use-floating.svelte.ts";
+	import { generateId } from "@utils/id-generator";
 
 	interface Props {
 		title?: string;
@@ -61,7 +62,7 @@ reveal after position calculation prevents layout flash.
 	let floatingEl = $state<HTMLElement | null>(null);
 	let arrowEl = $state<HTMLElement | null>(null);
 	let hasFocusableDescendant = $state(false);
-	const tooltipId = `tooltip-${crypto.randomUUID().slice(0, 8)}`;
+	const tooltipId = generateId("tooltip");
 
 	const placement = $derived(positioning.placement ?? "top");
 	const gutter = $derived(positioning.gutter ?? 8);

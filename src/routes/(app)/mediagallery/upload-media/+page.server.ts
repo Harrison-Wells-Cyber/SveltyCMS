@@ -11,6 +11,8 @@ import { MediaService } from "@src/utils/media/media-service.server";
 import { error } from "@sveltejs/kit";
 import { logger } from "@utils/logger";
 import { getAuthenticatedUser } from "@utils/page-guards.server";
+import { safeFetch } from "@utils/egress-guard";
+import { hasPermissionWithRoles } from "@src/databases/auth/permissions";
 import type { Actions } from "./$types";
 
 export const actions: Actions = {
@@ -22,6 +24,13 @@ export const actions: Actions = {
 
     try {
       const user = getAuthenticatedUser(locals);
+      if (
+        !locals.isAdmin &&
+        !user.isAdmin &&
+        !hasPermissionWithRoles(user, "media:write", locals.roles ?? [])
+      ) {
+        throw error(403, "Media write permission required");
+      }
 
       const formData = await request.formData();
       const files = formData.getAll("files");
@@ -64,6 +73,13 @@ export const actions: Actions = {
 
     try {
       const user = getAuthenticatedUser(locals);
+      if (
+        !locals.isAdmin &&
+        !user.isAdmin &&
+        !hasPermissionWithRoles(user, "media:write", locals.roles ?? [])
+      ) {
+        throw error(403, "Media write permission required");
+      }
 
       const formData = await request.formData();
       const remoteUrls = JSON.parse(formData.get("remoteUrls") as string) as string[];
@@ -77,16 +93,15 @@ export const actions: Actions = {
 
       for (const url of remoteUrls) {
         try {
-          const response = await fetch(url);
-          if (!response.ok) {
+          const response = await safeFetch(url, { maxSizeBytes: 50 * 1024 * 1024 });
+          if (!response.success || !response.bodyBytes) {
             logger.warn(`Failed to fetch remote URL: ${url}`);
             continue;
           }
-          const arrayBuffer = await response.arrayBuffer();
-          const contentType = response.headers.get("content-type") || "application/octet-stream";
+          const contentType = response.headers?.["content-type"] || "application/octet-stream";
           const filename = url.substring(url.lastIndexOf("/") + 1);
 
-          const file = new File([arrayBuffer], filename, { type: contentType });
+          const file = new File([response.bodyBytes], filename, { type: contentType });
 
           await mediaService.saveMedia(file, user._id as any, access, locals.tenantId as any);
           logger.info(`Remote file uploaded successfully: ${file.name}`);

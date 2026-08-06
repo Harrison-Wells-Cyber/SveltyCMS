@@ -22,6 +22,7 @@
 import { getContext } from 'svelte';
 import { cn } from '@utils/cn';
 import Collapsible from './collapsible.svelte';
+import { generateId } from '@utils/id-generator';
 
 interface Props {
 	id?: string;
@@ -34,7 +35,7 @@ interface Props {
 }
 
 let {
-	id = crypto.randomUUID(),
+	id = generateId('accordion-item'),
 	title,
 	icon,
 	disabled = false,

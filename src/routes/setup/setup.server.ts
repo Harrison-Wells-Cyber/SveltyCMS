@@ -14,6 +14,7 @@ import { setupAdminSchema, smtpConfigSchema } from "@utils/schemas";
 import { safeParse } from "valibot";
 import nodemailer from "nodemailer";
 import type { ISODateString } from "@src/databases/db-interface";
+import { generateUUID } from "@utils/native-utils";
 
 export interface DbConfig {
   type: string;
@@ -287,7 +288,7 @@ export async function completeSetup(
     if (system.multiTenant && dbAdapter?.system?.tenants) {
       const primaryTenantId = system.siteName
         ? system.siteName.toLowerCase().replace(/[^a-z0-9]+/g, "-")
-        : globalThis.crypto.randomUUID();
+        : generateUUID();
 
       // Create the primary tenant if it doesn't exist
       try {

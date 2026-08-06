@@ -8,6 +8,7 @@ import { LRUCache } from "lru-cache";
 import { CacheCategory, type CacheStats } from "./types";
 import { BloomFilter } from "@utils/bloom-filter";
 import { cacheMetrics } from "./cache-metrics";
+import { generateUUID } from "@utils/native-utils";
 
 // --- EXPORTED CONSTANTS (API Compatibility) ---
 export const API_CACHE_TTL_S = 300;
@@ -103,7 +104,7 @@ export class CacheService {
     this.negativeInvalidated = new Set<string>();
     this.startNegativeCacheRotation();
 
-    this.nodeId = globalThis.crypto ? globalThis.crypto.randomUUID() : Math.random().toString(36);
+    this.nodeId = generateUUID();
   }
 
   private startNegativeCacheRotation() {

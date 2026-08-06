@@ -23,6 +23,7 @@ import { slide } from 'svelte/transition';
 import { onMount } from 'svelte';
 import type { Snippet } from 'svelte';
 import type { HTMLAttributes } from 'svelte/elements';
+import { generateId } from '@utils/id-generator';
 
 type Props = HTMLAttributes<HTMLDivElement> & {
 	open?: boolean;
@@ -53,7 +54,7 @@ onMount(() => {
 	return () => mq.removeEventListener('change', handler);
 });
 
-const contentId = $derived(`collapsible-${crypto.randomUUID()}`);
+const contentId = generateId('collapsible');
 const slideDuration = $derived(prefersReducedMotion ? 0 : 200);
 
 function toggle() {

@@ -29,6 +29,8 @@ import { getImageSizes, moveMediaToTrash } from "@utils/media/media-storage.serv
 import { resolveMediaPublicPath } from "@utils/media/media-utils";
 import type { Actions, PageServerLoad } from "./$types";
 import { matchesJsonPathFilter } from "@utils/json-path-filter";
+import { safeFetch } from "@utils/egress-guard";
+import { hasPermissionWithRoles } from "@src/databases/auth/permissions";
 
 /**
  * 🚀 Fast serializer: converts _id/parent ObjectIds to strings.
@@ -302,6 +304,13 @@ export const actions: Actions = {
 
     try {
       const user = getAuthenticatedUser(locals);
+      if (
+        !locals.isAdmin &&
+        !user.isAdmin &&
+        !hasPermissionWithRoles(user, "media:write", locals.roles ?? [])
+      ) {
+        throw error(403, "Media write permission required");
+      }
 
       const formData = await request.formData();
       const files = formData.getAll("files");
@@ -494,6 +503,13 @@ export const actions: Actions = {
 
     try {
       const user = getAuthenticatedUser(locals);
+      if (
+        !locals.isAdmin &&
+        !user.isAdmin &&
+        !hasPermissionWithRoles(user, "media:write", locals.roles ?? [])
+      ) {
+        throw error(403, "Media write permission required");
+      }
 
       const formData = await request.formData();
       const remoteUrls = JSON.parse(formData.get("remoteUrls") as string) as string[];
@@ -510,15 +526,14 @@ export const actions: Actions = {
       await Promise.allSettled(
         remoteUrls.map(async (url) => {
           try {
-            const response = await fetch(url);
-            if (!response.ok) {
+            const response = await safeFetch(url, { maxSizeBytes: 50 * 1024 * 1024 });
+            if (!response.success || !response.bodyBytes) {
               logger.warn(`Failed to fetch remote URL: ${url}`);
               return;
             }
-            const arrayBuffer = await response.arrayBuffer();
-            const contentType = response.headers.get("content-type") || "application/octet-stream";
+            const contentType = response.headers?.["content-type"] || "application/octet-stream";
             const filename = url.substring(url.lastIndexOf("/") + 1);
-            const file = new File([arrayBuffer], filename, { type: contentType });
+            const file = new File([response.bodyBytes], filename, { type: contentType });
             await mediaService.saveMedia(
               file,
               user._id as any,

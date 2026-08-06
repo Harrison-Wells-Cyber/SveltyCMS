@@ -24,6 +24,7 @@ import {
 import { auditPresetJson, type ContrastWarning } from "@utils/theme-contrast";
 import type { DatabaseId } from "@src/content/types";
 import type { Theme } from "@src/databases/db-interface";
+import { generateUUID } from "@utils/native-utils";
 
 /** Admin-controlled locks — when true, users cannot override that preference */
 export interface AdminLockedSettings {
@@ -225,7 +226,7 @@ export class AdminThemeService {
     };
 
     const result = await db.system.themes.install({
-      _id: globalThis.crypto.randomUUID(),
+      _id: generateUUID(),
       name,
       path: `/themes/${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
       isActive: false,

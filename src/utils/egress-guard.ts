@@ -46,6 +46,7 @@ export interface EgressResult {
   success: boolean;
   status?: number;
   body?: string;
+  bodyBytes?: Uint8Array;
   headers?: Record<string, string>;
   error?: string;
 }
@@ -210,6 +211,7 @@ export async function safeFetch(
       success: response.ok,
       status: response.status,
       body: safeText,
+      bodyBytes: totalBuffer,
       headers,
     };
   } catch (err: unknown) {

@@ -57,27 +57,15 @@ async function loadApp() {
     handler(req, res);
   });
 
-  // Start standard Yjs collaboration WebSocket server
-  console.log("[SveltyCMS] Initializing Yjs WebSocket collaboration server on /ws...");
-  let stopYjs;
-  try {
-    const { startYjsSyncServer } = await import("./build/yjs-sync-server.js");
-    stopYjs = startYjsSyncServer({ server, path: "/ws" });
-  } catch (err) {
-    console.warn("[SveltyCMS] Failed to initialize Yjs collaboration server:", err.message);
-  }
-
   server.listen(port, () => {
-    console.log(`[SveltyCMS] Server listening on port ${port} (WS enabled)`);
+    console.log(`[SveltyCMS] Server listening on port ${port}`);
   });
 
   // Handle signals for graceful shutdown
   process.on("SIGTERM", () => {
-    if (stopYjs) stopYjs();
     server.close();
   });
   process.on("SIGINT", () => {
-    if (stopYjs) stopYjs();
     server.close();
   });
 }

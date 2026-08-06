@@ -36,6 +36,7 @@ if (typeof (globalThis as any).__dirname === "undefined") {
 
 import { isSetupComplete } from "./utils/setup-check-fast";
 import { resetIdCounters } from "@utils/id-generator";
+import { generateUUID } from "@utils/native-utils";
 
 // 🚀 ZERO-RESTART ARCHITECTURE:
 // We track the setup state dynamically to allow the system to switch from
@@ -47,7 +48,7 @@ let setupComplete =
 
 // ✨ ENTERPRISE: Stable Node ID for Distributed Cache Sync (Phase 8)
 if (typeof (globalThis as any).__SVELTY_NODE_ID__ === "undefined") {
-  (globalThis as any).__SVELTY_NODE_ID__ = crypto.randomUUID();
+  (globalThis as any).__SVELTY_NODE_ID__ = generateUUID();
 }
 
 import { handleTurboPipeline } from "./hooks/handle-turbo-pipeline.server";
@@ -580,7 +581,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   inFlightRequests++;
   // Reset per-request ID counters for deterministic SSR/hydration IDs
   resetIdCounters();
-  const traceId = (event.locals as any).requestId || crypto.randomUUID();
+  const traceId = (event.locals as any).requestId || generateUUID();
   const traceHeader = event.request.headers.get("x-svelty-trace");
   const isBenchmark =
     process.env.BENCHMARK === "true" || process.env.SVELTY_BENCHMARK_SUITE === "true";

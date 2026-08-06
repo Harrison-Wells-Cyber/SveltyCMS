@@ -22,6 +22,7 @@
 <script lang="ts">
 import { cn } from '@utils/cn';
 import type { HTMLAttributes } from 'svelte/elements';
+import { generateId } from '@utils/id-generator';
 
 type Option = {
 	label: string;
@@ -43,7 +44,7 @@ type Props = Omit<HTMLAttributes<HTMLDivElement>, 'value' | 'onchange'> & {
 let {
 		options = [],
 		value = $bindable(),
-		name = crypto.randomUUID(),
+		name = generateId('segmented-control'),
 		disabled = false,
 		rounded = 'var(--admin-radius-input, 0.375rem)',
 		class: className,

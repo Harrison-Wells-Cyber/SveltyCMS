@@ -42,6 +42,7 @@ import {
 } from "../utils/security/constants";
 import { applyAllSecurityHeaders } from "./handle-security-headers";
 import { logger } from "@src/utils/logger";
+import { generateUUID } from "@utils/native-utils";
 // Hook is initialized lazily
 let cachedDbAdapter: any = null;
 let healthHeaders: Record<string, string> | null = null;
@@ -53,7 +54,7 @@ let requestIdCounter = 0;
 const generateRequestId = () => {
   if (IS_BENCHMARK) return ++requestIdCounter;
   // Use CSPRNG for all trace IDs (security hardening)
-  return globalThis.crypto.randomUUID().slice(0, 8) + Date.now().toString(36);
+  return generateUUID().slice(0, 8) + Date.now().toString(36);
 };
 
 /** Logs request performance — ONLY in development mode to avoid string interpolation overhead in production */
